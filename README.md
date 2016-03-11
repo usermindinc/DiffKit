@@ -12,3 +12,8 @@ News
 ====
 
 Travis CI was setup !
+
+Build
+=====
+
+    mvn clean compile assembly:single
