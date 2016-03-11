@@ -160,27 +160,29 @@ public class DKApplication {
       Logger userLog = DKRuntime.getInstance().getUserLog();
       systemLog.info("planFilesString_->{}", planFilesString_);
       String[] planFiles = planFilesString_.split("\\,");
-      userLog.info("planfile(s)->{}", Arrays.toString(planFiles));
-      DKPlan plan = (DKPlan) DKSpringUtil.getBean("plan", planFiles,
-         DKApplication.class.getClassLoader());
-      systemLog.info("plan->{}", plan);
-      DKSource lhsSource = plan.getLhsSource();
-      DKSource rhsSource = plan.getRhsSource();
-      DKSink sink = plan.getSink();
-      DKTableComparison tableComparison = plan.getTableComparison();
-      userLog.info("lhsSource->{}", lhsSource);
-      userLog.info("rhsSource->{}", rhsSource);
-      userLog.info("sink->{}", sink);
-      userLog.info("tableComparison->{}", tableComparison);
-      Map<UserKey, Object> userDictionary = new HashMap<UserKey, Object>();
-      userDictionary.put(UserKey.PLAN_FILES, planFilesString_);
-      DKContext diffContext = doDiff(lhsSource, rhsSource, sink, tableComparison,
-         userDictionary);
-      userLog.info(sink.generateSummary(diffContext));
-      if (plan.getSink().getDiffCount() == 0)
-         System.exit(0);
-      if (errorOnDiff_)
-         System.exit(-1);
+      for (String planFile : planFiles) {
+         userLog.info("planfile(s)->{}", planFile);
+         // TODO: investigate this. Should it return an array of DKPlans? The api is confusing.
+         DKPlan plan = (DKPlan) DKSpringUtil.getBean("plan", new String[] {planFile},
+             DKApplication.class.getClassLoader());
+         systemLog.info("plan->{}", plan);
+         DKSource lhsSource = plan.getLhsSource();
+         DKSource rhsSource = plan.getRhsSource();
+         DKSink sink = plan.getSink();
+         DKTableComparison tableComparison = plan.getTableComparison();
+         userLog.info("lhsSource->{}", lhsSource);
+         userLog.info("rhsSource->{}", rhsSource);
+         userLog.info("sink->{}", sink);
+         userLog.info("tableComparison->{}", tableComparison);
+         Map<UserKey, Object> userDictionary = new HashMap<UserKey, Object>();
+         userDictionary.put(UserKey.PLAN_FILES, planFilesString_);
+         DKContext diffContext = doDiff(lhsSource, rhsSource, sink, tableComparison,
+             userDictionary);
+         userLog.info(sink.generateSummary(diffContext));
+         if (plan.getSink().getDiffCount() > 0 && errorOnDiff_) {
+            System.exit(-1);
+         }
+      }
       System.exit(0);
    }
 
